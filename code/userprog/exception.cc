@@ -142,7 +142,6 @@ void ExceptionHandler(ExceptionType which)
 					delete[] filename;
 				}
 
-
 				delete[] filename;		
 
 			}			

@@ -43,7 +43,13 @@
 				// implementation is available
 class FileSystem {
   public:
-    FileSystem(bool format) {}
+    int index;
+    OpenFile* fileOpened[10];
+    FileSystem(bool format) {
+      index = 0;
+      fileOpened[index++] = new OpenFile(index); // stdin from console
+      fileOpened[index++] = new OpenFile(index); // stdout to console
+    }
 
     bool Create(char *name, int initialSize) { 
       DEBUG('f',"\n In FILESYS_STUB");
@@ -55,11 +61,15 @@ class FileSystem {
 	}
 
     OpenFile* Open(char *name) {
-      DEBUG('f',"\n In FILESYS_STUB");
+      DEBUG('f',"\n In FILESYS_STUB\n");
+      if(index >= 10)
+        return NULL;
   	  int fileDescriptor = OpenForReadWrite(name, FALSE);
 
-  	  if (fileDescriptor == -1) return NULL;
-  	  return new OpenFile(fileDescriptor);
+  	  if (fileDescriptor == -1) 
+        return NULL;
+      fileOpened[index++] = new OpenFile(fileDescriptor);
+  	  return fileOpened[index];
     }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
