@@ -126,13 +126,14 @@ void ExceptionHandler(ExceptionType which)
 				int type = machine->ReadRegister(5);
 				if(type != 0 && type != 1){
 					printf("Invalid File Type Access\n");
+					machine->WriteRegister(2,-1);
+					return;
 				}
 				int virtAddr = machine->ReadRegister(4);
 				char* filename = machine->User2System(virtAddr,MaxFileLength+1);
 				if(filename == NULL){
 					DEBUG('f',"\n Kernel Space out of memory");
 					machine->WriteRegister(2,-1);
-					delete[] filename;
 					return;
 				}
 				OpenFile* file = fileSystem->Open(filename);
@@ -140,12 +141,20 @@ void ExceptionHandler(ExceptionType which)
 					DEBUG('f',"\n File Cannot Open");
 					machine->WriteRegister(2,-1);
 					delete[] filename;
+					return;
 				}
-
-
+				DEBUG('f',"\n File Successfull Open");
+				machine->WriteRegister(2,file->getFileId());
 				delete[] filename;		
-
-			}			
+			}
+			break;
+			case SC_Close:
+			{
+				int fileId = machine->ReadRegister(4);
+				int isClosed = fileSystem->Close(fileId);
+				machine->WriteRegister(2,isClosed);
+			}
+			break;			
 			default:
 				printf("\n Unexpected user mode exception (%d %d)", which,type);
 				interrupt->Halt();

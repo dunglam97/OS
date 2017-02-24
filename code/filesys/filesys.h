@@ -61,11 +61,12 @@ class FileSystem {
     }
     bool Create(char *name, int initialSize) { 
       DEBUG('f',"\n In FILESYS_STUB");
-	int fileDescriptor = OpenForWrite(name);
+    	int fileDescriptor = OpenForWrite(name);
 
-	if (fileDescriptor == -1) return FALSE;
-	Close(fileDescriptor); 
-	return TRUE; 
+    	if (fileDescriptor == -1) 
+        return FALSE;
+    	Close(fileDescriptor); 
+    	return TRUE; 
 	}
 
     OpenFile* Open(char *name) {
@@ -73,11 +74,10 @@ class FileSystem {
       if(curNumber >= 10)
         return NULL;
   	  int fileDescriptor = OpenForReadWrite(name, FALSE);
-
   	  if (fileDescriptor == -1) 
         return NULL;
       OpenFile* file = NULL;
-      for(int i = 0 ; i < 10 ; ++i){
+      for(int i = 2 ; i < 10 ; ++i){
         if(fileOpened[i] == NULL){
           fileOpened[i] = new OpenFile(fileDescriptor);
           if(fileOpened[i] != NULL) //check whether out of memory
@@ -85,11 +85,23 @@ class FileSystem {
             file = fileOpened[i];
             curNumber++;
           }
+          break;
         }
       }
   	  return file;
     }
-
+    int Close(OpenFileID ID){
+      for(int i = 2 ; i < 10 ; ++i){
+        if(fileOpened[i] != NULL)
+          if(fileOpened[i]->getFileId() == ID){
+            delete fileOpened[i];
+            fileOpened[i] = NULL;
+            curNumber--;
+            return 0; //find file and close it;
+          }
+      }
+      return -1; //find not found.
+    }
     bool Remove(char *name) { return Unlink(name) == 0; }
 
 };
