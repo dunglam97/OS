@@ -43,8 +43,22 @@
 				// implementation is available
 class FileSystem {
   public:
-    FileSystem(bool format) {}
-
+    int curNumber;
+    OpenFile* fileOpened[10];
+    FileSystem(bool format) {
+      curNumber = 2;
+      fileOpened[0] = new OpenFile[0]; //console input
+      fileOpened[1] = new OpenFile[1]; //console output
+      for(int i = curNumber ; i < 10 ; ++i){
+        fileOpened[i] = NULL;
+      }
+    }
+    ~FileSystem(){
+      for(int i = 0 ; i < 10;++i){
+        if(fileOpened[i] != NULL)
+          delete fileOpened[i];
+      }
+    }
     bool Create(char *name, int initialSize) { 
       DEBUG('f',"\n In FILESYS_STUB");
 	int fileDescriptor = OpenForWrite(name);
@@ -56,10 +70,24 @@ class FileSystem {
 
     OpenFile* Open(char *name) {
       DEBUG('f',"\n In FILESYS_STUB");
+      if(curNumber >= 10)
+        return NULL;
   	  int fileDescriptor = OpenForReadWrite(name, FALSE);
 
-  	  if (fileDescriptor == -1) return NULL;
-  	  return new OpenFile(fileDescriptor);
+  	  if (fileDescriptor == -1) 
+        return NULL;
+      OpenFile* file = NULL;
+      for(int i = 0 ; i < 10 ; ++i){
+        if(fileOpened[i] == NULL){
+          fileOpened[i] = new OpenFile(fileDescriptor);
+          if(fileOpened[i] != NULL) //check whether out of memory
+          {
+            file = fileOpened[i];
+            curNumber++;
+          }
+        }
+      }
+  	  return file;
     }
 
     bool Remove(char *name) { return Unlink(name) == 0; }
